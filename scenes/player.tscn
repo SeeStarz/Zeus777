@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://bj60cch8ajpl7"]
+[gd_scene load_steps=34 format=3 uid="uid://bj60cch8ajpl7"]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_aq1ju"]
 [ext_resource type="Texture2D" uid="uid://jyeokyprw8it" path="res://assets/Virtual Guy/Jump (32x32).png" id="1_pdx6o"]
@@ -6,9 +6,8 @@
 [ext_resource type="Texture2D" uid="uid://ba2e74fcbeknu" path="res://assets/Virtual Guy/Fall (32x32).png" id="2_ayhye"]
 [ext_resource type="Texture2D" uid="uid://dudaqy4cxpmpe" path="res://assets/Virtual Guy/Run (32x32).png" id="4_4u5mf"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_0fv26"]
-radius = 28.0
-height = 96.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_466b4"]
+size = Vector2(67, 85.5)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_0x4ey"]
 atlas = ExtResource("2_a7a00")
@@ -150,7 +149,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ccns4")
 }],
-"loop": false,
+"loop": true,
 "name": &"idling",
 "speed": 20.0
 }, {
@@ -204,11 +203,19 @@ animations = [{
 "speed": 20.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qqxr3"]
+size = Vector2(106, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1ahe7"]
+
 [node name="CharacterBody2D" type="CharacterBody2D"]
 script = ExtResource("1_aq1ju")
+HOOK_SPEED = 2000
+COYOTE_FRAMES = 10
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CapsuleShape2D_0fv26")
+position = Vector2(1, 5.75)
+shape = SubResource("RectangleShape2D_466b4")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
@@ -216,5 +223,18 @@ scale = Vector2(3, 3)
 sprite_frames = SubResource("SpriteFrames_ohntv")
 animation = &"running"
 autoplay = "idling"
-frame = 8
-frame_progress = 0.956867
+frame_progress = 0.913515
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(90, 0)
+shape = SubResource("RectangleShape2D_qqxr3")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(153, 0)
+shape = SubResource("RectangleShape2D_1ahe7")
+
+[connection signal="body_entered" from="Area2D" to="." method="_on_area_2d_body_entered"]
