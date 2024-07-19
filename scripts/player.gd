@@ -1,90 +1,143 @@
 extends CharacterBody2D
 
-@onready var animated_sprite_2d = $AnimatedSprite2D
-@onready var area_2d = $Area2D
-@onready var collision_shape_2d = $Area2D/CollisionShape2D
-@onready var collision_shape_2d2 = $Area2D/CollisionShape2D2
+signal hook_set(enabled: bool)
+
+@onready var sprite = $Sprite
+@onready var hook = $Hook
+@onready var collision_shape_2d = $Hook/CollisionShape2D
+@onready var collision_shape_2d2 = $Hook/CollisionShape2D2
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 #var gravity = ProjectSettings.get_setting("physics/2d/default_gravity") * 1
-@export var SPEED = 300.0
-@export var JUMP_VELOCITY = -900.0
-@export var HOOK_SPEED = 1400
-@export var FALL_SPEED = 900
-@export var GRAVITY = 980 * 2.5
-@export var COYOTE_FRAMES = 3
-@export var HOOK_FRAMES = 30
+@export var SPEED: float = 300.0
+@export var JUMP_VELOCITY: float = 900.0
+@export var FALL_SPEED: float = 900.0
+@export var GRAVITY: float = 980.0 * 2.5
+@export var COYOTE_FRAMES: int = 4
+@export var HOOK_FRAMES: int = 300
+@export var ACCELERATE_FRAMES: int = 3
+@export var DECCELERATE_FRAMES: int = 6
+@export var HOOK_LATCH_SPEED: float = 900.0
+@export var HOOK_SNAP_DISTANCE: float = 10.0
 
-var current_coyote_frame = 0
-var hook_frame = HOOK_FRAMES
-var cancellable = false
+var current_coyote_frame: int = -1
+var current_hook_frame: int = -1
+var jump_cancellable: bool = false
+var latched_to: Vector2 = Vector2.ZERO
 
-func _physics_process(delta):
-	# Add the gravity.
+func tick_coyote() -> void:
 	if is_on_floor():
 		current_coyote_frame = COYOTE_FRAMES
-		cancellable = false
+		jump_cancellable = false
 	else:
-		velocity.y += GRAVITY * delta
-		if current_coyote_frame > 0:
+		if current_coyote_frame >= 0:
 			current_coyote_frame -= 1
 	
-	if Input.is_action_just_pressed("jump") and current_coyote_frame > 0:
-		velocity.y = JUMP_VELOCITY
-		cancellable = true
-		
-	if not Input.is_action_pressed("jump") and velocity.y < 0 and cancellable:
-		velocity.y = 0
-		cancellable = false
-		
-	if velocity.y > FALL_SPEED:
-		velocity.y = FALL_SPEED
-
-	# Get the input direction and handle the movement/deceleration.
-	# As good practice, you should replace UI actions with custom gameplay actions.
-	var direction = Input.get_axis("left", "right")
-	if direction and abs(velocity.x) < SPEED:
-		velocity.x = move_toward(velocity.x, SPEED*direction, SPEED/3)
+func tick_hook() -> void:
+	if latched_to:
+		current_hook_frame -= 1
+		if Input.is_action_just_released("hook") or current_hook_frame < 0:
+			latched_to = Vector2.ZERO
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED/6)
+		current_hook_frame = -1
 
-	move_and_slide()
+func apply_hook(delta: float) -> void:
+	if latched_to:
+		var distance = latched_to - global_position
+		velocity = distance.normalized() * HOOK_LATCH_SPEED
+		if distance.length() < HOOK_SNAP_DISTANCE:
+			global_position = latched_to
+
+func apply_gravity(delta: float) -> void:
+	if is_on_floor():
+		return
+	velocity.y += GRAVITY * delta
+
+func can_jump() -> bool:
+	return current_coyote_frame >= 0
+	
+func can_add_velocity() -> bool:
+	return current_hook_frame == -1
+	
+func do_hook():
+	var horizontal: float = Input.get_axis("left", "right")
+	var vertical: float = Input.get_axis("up", "down")
+	
+	var angle: float
+	if (not vertical) and (not horizontal):
+		angle = 0 if not sprite.flip_h else PI
+	elif not horizontal:
+		angle = -PI * (1 + vertical/2)
+	elif not vertical:
+		angle = -PI * (1 - horizontal)/2
+	else:
+		angle = -PI/4 * ( 2*(vertical + 1) + (vertical*horizontal + 1) + 1)
+		
+	hook.rotation = angle
+	current_hook_frame = HOOK_FRAMES
+	hook_set.emit(true)
+
+func _physics_process(delta: float) -> void:
+	# Tick hook and then apply if still attached
+	tick_hook()
+	apply_hook(delta)
 	
 	if Input.is_action_just_pressed("hook"):
-		if not Input.is_action_pressed("up"):
-			if not animated_sprite_2d.flip_h:
-				area_2d.rotation = 0
-			else:
-				area_2d.rotation = -PI
-		elif direction == 1:
-			area_2d.rotation = -PI/4
-		elif direction == -1:
-			area_2d.rotation = -3*PI/4
-		else:
-			area_2d.rotation = -PI/2 
-				
-		collision_shape_2d.disabled = false
-		collision_shape_2d2.disabled = false
+		do_hook()
 	else:
-		collision_shape_2d.disabled = true
-		collision_shape_2d2.disabled = true
+		hook_set.emit(false)
 	
+	# Jump check first then do jump
+	tick_coyote()
+	if Input.is_action_just_pressed("jump") and can_jump():
+		velocity.y = -JUMP_VELOCITY
+		jump_cancellable = true
+	
+	# Cancel jump, immediatly stop all vertical momentum
+	if Input.is_action_just_released("jump") and velocity.y < 0 and jump_cancellable:
+		velocity.y = 0
+		jump_cancellable = false
+	
+	# Apply gravity
+	apply_gravity(delta)
+	
+	# Limit fall speed
+	if velocity.y > FALL_SPEED and can_add_velocity():
+		velocity.y = move_toward(velocity.y, FALL_SPEED, SPEED/6)
+
+	# Accelerate and deccelerate
+	# Going the opposite direction counts as acceleration
+	var direction = Input.get_axis("left", "right")
+	if direction and velocity.x * direction < SPEED and can_add_velocity():
+		velocity.x = move_toward(velocity.x, SPEED*direction, SPEED/ACCELERATE_FRAMES)
+	elif can_add_velocity():
+		velocity.x = move_toward(velocity.x, 0, SPEED/DECCELERATE_FRAMES)
+
+	# Apply acceleration and velocity
+	move_and_slide()
+
+	# Update animation
 	if not is_on_floor():
-		if (velocity.y < 0):
-			animated_sprite_2d.animation = "jumping"
+		if (velocity.y < 0 and not latched_to):
+			sprite.animation = "jumping"
 		else:
-			animated_sprite_2d.animation = "falling"
+			sprite.animation = "falling"
 	elif (abs(velocity.x) > 1):
-		animated_sprite_2d.animation = "running"
+		sprite.animation = "running"
 	else:
-		animated_sprite_2d.animation = "idling"
-		
-	if (velocity.x > 1):
-		animated_sprite_2d.flip_h = false
-	elif (velocity.x < -1):
-		animated_sprite_2d.flip_h = true
+		sprite.animation = "idling"
 
+	if Input.is_action_just_pressed("right"):
+		sprite.flip_h = false
+	elif Input.is_action_just_pressed("left"):
+		sprite.flip_h = true
 
-func _on_area_2d_body_entered(body: Node2D) -> void:
-	velocity = Vector2(HOOK_SPEED, 0).rotated(area_2d.rotation)
-	cancellable = false
+func _on_hook_body_shape_entered(body_rid:RID, body: Node2D, _body_shape_index:int,
+	_local_shape_index:int) -> void:
+	var tilemap := body as TileMap
+	latched_to = tilemap.to_global(tilemap.map_to_local(
+		tilemap.get_coords_for_body_rid(body_rid)))
+	if not latched_to: # Is zero
+		push_warning("Latching to vector zero, is this intended?")
+		latched_to = Vector2(0.1, 0.1)
+	jump_cancellable = false
