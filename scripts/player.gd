@@ -44,7 +44,9 @@ func tick_hook() -> void:
 func apply_hook(delta: float) -> void:
 	if latched_to:
 		var distance = latched_to - global_position
-		velocity = distance.normalized() * HOOK_LATCH_SPEED
+		#velocity = distance.normalized() * HOOK_LATCH_SPEED
+		global_position = global_position.move_toward(latched_to, HOOK_LATCH_SPEED*delta)
+		velocity = Vector2i.ZERO
 		if distance.length() < HOOK_SNAP_DISTANCE:
 			global_position = latched_to
 

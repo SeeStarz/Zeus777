@@ -208,7 +208,6 @@ animations = [{
 script = ExtResource("1_aq1ju")
 
 [node name="Hitbox" type="CollisionShape2D" parent="."]
-visible = false
 position = Vector2(1, 5.75)
 shape = SubResource("RectangleShape2D_466b4")
 
