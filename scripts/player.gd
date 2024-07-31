@@ -18,7 +18,6 @@ signal hook_set(enabled: bool)
 @export var ACCELERATE_FRAMES: int = 3
 @export var DECCELERATE_FRAMES: int = 6
 @export var HOOK_LATCH_SPEED: float = 900.0
-@export var HOOK_SNAP_DISTANCE: float = 10.0
 
 var current_coyote_frame: int = -1
 var current_hook_frame: int = -1
@@ -44,11 +43,10 @@ func tick_hook() -> void:
 func apply_hook(delta: float) -> void:
 	if latched_to:
 		var distance = latched_to - global_position
-		#velocity = distance.normalized() * HOOK_LATCH_SPEED
-		global_position = global_position.move_toward(latched_to, HOOK_LATCH_SPEED*delta)
-		velocity = Vector2i.ZERO
-		if distance.length() < HOOK_SNAP_DISTANCE:
-			global_position = latched_to
+		if distance.length() < HOOK_LATCH_SPEED * delta:
+			velocity = distance / delta
+		else:
+			velocity = distance.normalized() * HOOK_LATCH_SPEED
 
 func apply_gravity(delta: float) -> void:
 	if is_on_floor():

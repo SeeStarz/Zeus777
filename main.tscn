@@ -767,3 +767,4 @@ layer_0/tile_data = PackedInt32Array(524288, 524288, 1, 524311, 393216, 1, 58982
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("3_fop26")]
 position = Vector2(168, 580)
+HOOK_LATCH_SPEED = 1800.0
