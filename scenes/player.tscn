@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://bj60cch8ajpl7"]
+[gd_scene load_steps=35 format=3 uid="uid://bj60cch8ajpl7"]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_aq1ju"]
 [ext_resource type="Texture2D" uid="uid://jyeokyprw8it" path="res://assets/Virtual Guy/Jump (32x32).png" id="1_pdx6o"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://ba2e74fcbeknu" path="res://assets/Virtual Guy/Fall (32x32).png" id="2_ayhye"]
 [ext_resource type="Texture2D" uid="uid://dudaqy4cxpmpe" path="res://assets/Virtual Guy/Run (32x32).png" id="4_4u5mf"]
 [ext_resource type="PackedScene" uid="uid://bcxymlg8h8g6n" path="res://scenes/hook.tscn" id="6_8spkm"]
+[ext_resource type="Script" path="res://scripts/camera.gd" id="7_hr6p7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_466b4"]
 size = Vector2(67, 85.5)
@@ -204,6 +205,9 @@ animations = [{
 "speed": 20.0
 }]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h8gpg"]
+size = Vector2(1152, 648)
+
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_aq1ju")
 
@@ -221,5 +225,18 @@ frame_progress = 0.913515
 
 [node name="Hook" parent="." instance=ExtResource("6_8spkm")]
 
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("7_hr6p7")
+
+[node name="Area2D" type="Area2D" parent="Camera2D"]
+visible = false
+collision_layer = 4
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera2D/Area2D"]
+shape = SubResource("RectangleShape2D_h8gpg")
+
 [connection signal="hook_set" from="." to="Hook" method="_on_player_hook_set"]
 [connection signal="body_shape_entered" from="Hook" to="." method="_on_hook_body_shape_entered"]
+[connection signal="area_shape_entered" from="Camera2D/Area2D" to="Camera2D" method="_on_area_2d_area_shape_entered"]
+[connection signal="area_shape_exited" from="Camera2D/Area2D" to="Camera2D" method="_on_area_2d_area_shape_exited"]
