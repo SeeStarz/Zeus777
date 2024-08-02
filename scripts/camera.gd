@@ -4,8 +4,9 @@ extends Camera2D
 var lower_borders = []
 
 func _physics_process(delta):
-	if lower_borders.size() > 0 && (global_position.y + 300) > lower_borders.min():
-		offset.y = lower_borders.min() - global_position.y - 300
+	var camera_y = global_position.y + ProjectSettings.get_setting("display/window/size/viewport_height")/(2 * zoom.y)
+	if lower_borders.size() > 0 and camera_y > lower_borders.min():
+		offset.y = lower_borders.min() - camera_y
 	else:
 		offset.y = 0 
 
