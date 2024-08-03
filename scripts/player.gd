@@ -17,7 +17,7 @@ signal hook_set(enabled: bool)
 @export var HOOK_FRAMES: int = 300
 @export var ACCELERATE_FRAMES: int = 3
 @export var DECCELERATE_FRAMES: int = 6
-@export var HOOK_LATCH_SPEED: float = 900.0
+@export var HOOK_LATCH_SPEED: float = 1200.0
 
 var current_coyote_frame: int = -1
 var current_hook_frame: int = -1
