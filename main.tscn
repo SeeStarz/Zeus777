@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bl6ss8kyiwnv"]
+[gd_scene load_steps=7 format=3 uid="uid://bl6ss8kyiwnv"]
 
 [ext_resource type="Texture2D" uid="uid://ddanvynemnrkt" path="res://assets/Pink.png" id="1_cddvo"]
 [ext_resource type="Texture2D" uid="uid://d1ynhrdeljsh7" path="res://assets/Terrain (16x16).png" id="2_wnp3o"]
@@ -749,6 +749,9 @@ physics_layer_1/collision_layer = 2
 physics_layer_1/collision_mask = 0
 sources/0 = SubResource("TileSetAtlasSource_hsbo8")
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mv0lu"]
+size = Vector2(1152.25, 720)
+
 [node name="Node" type="Node"]
 
 [node name="TextureRect" type="TextureRect" parent="."]
@@ -767,3 +770,11 @@ layer_0/tile_data = PackedInt32Array(524288, 524288, 1, 524311, 393216, 1, 58982
 
 [node name="CharacterBody2D" parent="." instance=ExtResource("3_fop26")]
 position = Vector2(168, 580)
+
+[node name="Camera Area" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Camera Area"]
+position = Vector2(575.875, 312)
+shape = SubResource("RectangleShape2D_mv0lu")
