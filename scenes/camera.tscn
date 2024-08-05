@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/camera.gd" id="1_c8ml6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h8gpg"]
-size = Vector2(1152, 648)
+size = Vector2(1280, 720)
 
 [node name="Camera2D" type="Camera2D"]
 limit_smoothed = true

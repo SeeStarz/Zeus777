@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/hook.gd" id="1_qfdam"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qqxr3"]
-size = Vector2(106, 20)
+size = Vector2(225, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1ahe7"]
 
@@ -13,7 +13,7 @@ collision_mask = 2
 script = ExtResource("1_qfdam")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(90, 0)
+position = Vector2(192, 0)
 shape = SubResource("RectangleShape2D_qqxr3")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="."]
@@ -21,8 +21,9 @@ position = Vector2(153, 0)
 shape = SubResource("RectangleShape2D_1ahe7")
 
 [node name="ColorRect" type="ColorRect" parent="."]
+visible = false
 offset_left = 37.0
 offset_top = -10.0
-offset_right = 163.0
+offset_right = 265.0
 offset_bottom = 10.0
 color = Color(0.951346, 0.541245, 0.559905, 1)
